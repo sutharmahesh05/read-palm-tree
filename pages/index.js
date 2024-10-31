@@ -42,11 +42,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
-      {/* Navigation Bar */}
       <header className="bg-gray-800 p-5 flex justify-between items-center shadow-md">
-        <div className="flex items-center">
-          <h1 className="text-white text-3xl font-bold" style={{ fontFamily: 'Didot' }}>Books</h1>
-        </div>
+        <h1 className="text-white text-3xl font-bold" style={{ fontFamily: 'Didot' }}>readpalm</h1>
       </header>
 
       {/* Main Content */}
@@ -88,6 +85,7 @@ export default function Home() {
               onChange={(e) => setNewBook({ ...newBook, link: e.target.value })}
               className="border border-gray-600 p-2 rounded mb-4 w-full bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
             />
+
             <button onClick={addBook} className="bg-red-600 text-white p-2 rounded w-full hover:bg-red-500 transition duration-300">Add Book</button>
           </div>
 
@@ -143,16 +141,14 @@ export default function Home() {
 
         {/* Purpose Section */}
         <section className="bg-gray-800 p-6 mt-10 rounded-lg shadow-md text-gray-300">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-6">
-          <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Didot, serif' }}>
-            Why This Website Is a Must for Book Lovers!
-          </h2>
-          <p className="text-gray-300 italic" style={{ fontFamily: 'Georgia, serif' }}>
-            "I created this website to help fellow book lovers easily organize their collections, discover new reads, and share insights, all while enhancing my web development skills!"
-          </p>
-        </div>
-
-
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-6">
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Didot, serif' }}>
+              Why This Website Is a Must for Book Lovers!
+            </h2>
+            <p className="text-gray-300 italic" style={{ fontFamily: 'Georgia, serif' }}>
+              "I created this website to help fellow book lovers easily organize their collections, discover new reads, and share insights, all while enhancing my web development skills!"
+            </p>
+          </div>
         </section>
 
         {/* Copyright Notice */}
