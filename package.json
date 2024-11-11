@@ -14,9 +14,11 @@
   "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
+    "autoprefixer": "^10.4.20",
     "next": "^14.2.15",
+    "postcss": "^8.4.48",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.14"
   }
-
 }
