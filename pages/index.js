@@ -166,14 +166,19 @@ export default function Home() {
       <header className="bg-gray-900 shadow-sm border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
               <img
                   src="/logo-transparent1-png.png"
                   alt="readpalm logo"
                   className="w-16 sm:w-20 md:w-24 lg:w-32 object-contain"
                 />
+                </div> */}
               {/* <h1 className="text-3xl font-bold">READPALM</h1> */}
-            </div>
+              <div className="flex items-center gap-3">
+                <Book className="w-8 h-8 text-indigo-400" />
+                <h1 className="text-2xl font-bold">readPalm</h1>
+              </div>
+            
             <div className="flex items-center gap-2 bg-indigo-900 px-3 py-1 rounded-full">
               <BookOpen className="w-4 h-4 text-indigo-300" />
               <span className="text-sm font-medium">{books.length} Books</span>
