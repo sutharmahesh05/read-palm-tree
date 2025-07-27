@@ -167,7 +167,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="ReadPalm logo" className="w-8 h-8" />
+              <img src="/logo-transparent-svg.svg" alt="ReadPalm logo" className="w-8 h-8" />
               <h1 className="text-2xl font-bold">readpalm</h1>
             </div>
             <div className="flex items-center gap-2 bg-blue-900 px-3 py-1 rounded-full">
