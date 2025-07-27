@@ -1,205 +1,265 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient'; // Ensure this is correctly configured
+// pages/index.js
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import { Book, Plus, Search, AlertCircle, ExternalLink, BookOpen } from 'lucide-react';
 
-export default function Home() {
+function useBooks() {
   const [books, setBooks] = useState([]);
-  const [newBook, setNewBook] = useState({
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchBooks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase.from('books').select('*');
+      if (error) throw error;
+      setBooks(data || []);
+    } catch (err) {
+      setError('Failed to fetch books. Please try again.');
+      console.error('Error fetching books:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const addBook = useCallback(async (bookData) => {
+    setError(null);
+    try {
+      const { data: existing, error: existingError } = await supabase
+        .from('books')
+        .select('*')
+        .match({
+          title: bookData.title,
+          author: bookData.author,
+          published_year: bookData.published_year,
+        });
+
+      if (existingError) throw new Error('Error checking for existing book');
+      if (existing && existing.length > 0) {
+        throw new Error('This book already exists in the database');
+      }
+
+      const { data, error } = await supabase.from('books').insert([bookData]).select();
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setBooks(prev => [...prev, data[0]]);
+        return { success: true };
+      }
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  }, []);
+
+  return { books, loading, error, fetchBooks, addBook, setError };
+}
+
+function BookForm({ onAddBook, loading }) {
+  const [formData, setFormData] = useState({
     title: '',
     author: '',
     published_year: '',
-    description: '',
-    link: ''
+    link: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch books from Supabase on component mount
-  useEffect(() => {
-    fetchBooks();
-  }, []);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'published_year' ? parseInt(value) || '' : value
+    }));
+  };
 
-  // Function to fetch books from the database
-  async function fetchBooks() {
-    setLoading(true);
-    const { data, error } = await supabase.from('books').select('*');
-    setLoading(false);
-
-    if (error) {
-      console.error('Error fetching books:', error);
-      alert('There was an issue fetching the book data. Please try again.');
-    } else {
-      setBooks(data);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.author || !formData.published_year || !formData.link) {
+      alert('All fields are required');
+      return;
     }
-  }
-// Function to add a new book to the database
-async function addBook() {
-  if (!newBook.title || !newBook.author || !newBook.published_year || !newBook.description || !newBook.link) {
-    alert("Please fill in all fields.");
-    return;
-  }
+    setIsSubmitting(true);
+    const result = await onAddBook(formData);
+    if (result.success) {
+      setFormData({ title: '', author: '', published_year: '', link: '' });
+    }
+    setIsSubmitting(false);
+  };
 
-  // Check if the book already exists in the database
-  const { data: existingBooks, error: fetchError } = await supabase
-    .from('books')
-    .select('*')
-    .eq('title', newBook.title)
-    .eq('author', newBook.author)
-    .eq('published_year', newBook.published_year);
+  return (
+    <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Plus className="w-5 h-5 text-blue-600" />
+        <h2 className="text-xl font-semibold text-gray-800">Add New Book</h2>
+      </div>
 
-  if (fetchError) {
-    console.error('Error checking for existing book:', fetchError);
-    alert("Error checking for existing book: " + fetchError.message);
-    return;
-  }
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input
+          type="text"
+          name="title"
+          placeholder="Book Title"
+          value={formData.title}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting || loading}
+        />
+        <input
+          type="text"
+          name="author"
+          placeholder="Author"
+          value={formData.author}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting || loading}
+        />
+        <input
+          type="number"
+          name="published_year"
+          placeholder="Published Year"
+          value={formData.published_year}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting || loading}
+          min="1000"
+          max={new Date().getFullYear()}
+        />
+        <input
+          type="url"
+          name="link"
+          placeholder="Book Link (https://...)"
+          value={formData.link}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting || loading}
+        />
+      </div>
 
-  if (existingBooks && existingBooks.length > 0) {
-    alert("This book already exists in the database.");
-    return;
-  }
-
-  // Insert the new book if it doesn't already exist
-  const { data, error } = await supabase.from('books').insert([newBook]);
-
-  if (error) {
-    console.error('Error adding book:', error);
-    alert("Error adding book: " + error.message);
-  } else if (data && data.length > 0) {
-    setBooks([...books, data[0]]); // Append the new book to the list
-    setNewBook({ title: '', author: '', published_year: '', description: '', link: '' }); // Reset form
-  }
+      <button
+        onClick={handleSubmit}
+        className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-md transition-colors duration-200 disabled:bg-blue-400"
+        disabled={isSubmitting || loading}
+      >
+        {isSubmitting ? 'Adding...' : 'Add Book'}
+      </button>
+    </div>
+  );
 }
 
+export default function Home() {
+  const { books, loading, error, fetchBooks, addBook, setError } = useBooks();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter books based on search query
-  const filteredBooks = books.filter((book) =>
-    book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    book.author.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white p-5 border-b">
-        <img src="/logo-transparent-svg.svg" alt="Logo" className="h-12" />
+    <div className="min-h-screen bg-black text-white">
+      <header className="bg-gray-900 shadow-sm border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="ReadPalm logo" className="w-8 h-8" />
+              <h1 className="text-2xl font-bold">readpalm</h1>
+            </div>
+            <div className="flex items-center gap-2 bg-blue-900 px-3 py-1 rounded-full">
+              <BookOpen className="w-4 h-4 text-blue-300" />
+              <span className="text-sm font-medium">{books.length} Books</span>
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* Main Content */}
-      <div className="p-6">
-        {/* Add New Book Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4">Add New Book</h2>
-
-            <input
-              type="text"
-              placeholder="Title"
-              value={newBook.title}
-              onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
-              className="border p-2 rounded mb-2 w-full"
-            />
-
-            <input
-              type="text"
-              placeholder="Author"
-              value={newBook.author}
-              onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-              className="border p-2 rounded mb-2 w-full"
-            />
-
-            <input
-              type="number"
-              placeholder="Published Year"
-              value={newBook.published_year}
-              onChange={(e) => setNewBook({ ...newBook, published_year: parseInt(e.target.value) })}
-              className="border p-2 rounded mb-2 w-full"
-            />
-
-            <textarea
-              placeholder="Description"
-              value={newBook.description}
-              onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
-              className="border p-2 rounded mb-2 w-full"
-            ></textarea>
-
-            <input
-              type="text"
-              placeholder="Link"
-              value={newBook.link}
-              onChange={(e) => setNewBook({ ...newBook, link: e.target.value })}
-              className="border p-2 rounded mb-4 w-full"
-            />
-
-            <button onClick={addBook} className="bg-blue-600 text-white p-2 rounded w-full">
-              Add Book
-            </button>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-red-800 border border-red-600 text-red-100 p-4 mb-6 rounded-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                <span>{error}</span>
+              </div>
+              <button className="text-red-300 hover:text-red-100 font-bold" onClick={() => setError(null)}>×</button>
+            </div>
           </div>
+        )}
 
-          {/* Display Total Books */}
-          <div className="bg-white p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4">Total Books</h2>
-            <p className="text-3xl">{books.length}</p>
-          </div>
-        </div>
+        <BookForm onAddBook={addBook} loading={loading} />
 
-        {/* Search Bar */}
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search books..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border p-2 rounded w-full"
-          />
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search books by title or author..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-3 border border-gray-600 bg-gray-800 text-white rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
 
-        {/* Books Library */}
-        <h1 className="text-3xl font-bold mb-4">Books Library</h1>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-3 px-4 text-left">Title</th>
-                <th className="py-3 px-4 text-left">Author</th>
-                <th className="py-3 px-4 text-left">Published Year</th>
-                <th className="py-3 px-4 text-left">Description</th>
-                <th className="py-3 px-4 text-left">Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-4">Loading...</td>
-                </tr>
-              ) : (
-                filteredBooks.map((book) => (
-                  <tr key={book.id} className="border-b">
-                    <td className="py-3 px-4">{book.title}</td>
-                    <td className="py-3 px-4">{book.author}</td>
-                    <td className="py-3 px-4">{book.published_year}</td>
-                    <td className="py-3 px-4">{book.description}</td>
-                    <td className="py-3 px-4 text-blue-600">
-                      <a href={book.link} target="_blank" rel="noopener noreferrer">View</a>
-                    </td>
+        <div className="bg-white text-gray-900 border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center gap-2 text-gray-700">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                <span>Loading books...</span>
+              </div>
+            </div>
+          ) : filteredBooks.length === 0 ? (
+            <div className="p-8 text-center">
+              <Book className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-gray-800 mb-1">
+                {searchQuery ? 'No books found' : 'No books yet'}
+              </h3>
+              <p className="text-gray-500">
+                {searchQuery ? 'Try different search terms' : 'Add your first book to get started'}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Link</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredBooks.map((book) => (
+                    <tr key={book.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">{book.title}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">{book.author}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">{book.published_year}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <a href={book.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium">
+                          View <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+      </main>
 
-        {/* Purpose Section */}
-        <section className="bg-gray-100 p-6 mt-10 rounded-lg">
-          <h2 className="text-2xl font-bold mb-2">Why This Website Is a Must for Book Lovers!</h2>
-          <p className="italic">
-            "I created this website to help fellow book lovers easily organize their collections, discover new reads, and share insights!"
-          </p>
-        </section>
-
-        {/* Copyright Notice */}
-        <footer className="text-center py-4 mt-10">
-          <p>&copy; {new Date().getFullYear()} Books. All rights reserved.</p>
-        </footer>
-      </div>
+      <footer className="bg-gray-900 border-t border-gray-800 mt-12">
+        <div className="max-w-7xl mx-auto px-4 py-6 text-center">
+          <p className="text-gray-500">&copy; {new Date().getFullYear()} Book Library. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }
