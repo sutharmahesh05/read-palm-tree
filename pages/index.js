@@ -89,10 +89,10 @@ function BookForm({ onAddBook, loading }) {
   };
 
   return (
-    <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm mb-6">
+    <div className="bg-gray-900 p-6 border border-gray-800 rounded-lg shadow-sm mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <Plus className="w-5 h-5 text-blue-600" />
-        <h2 className="text-xl font-semibold text-gray-800">Add New Book</h2>
+        <Plus className="w-5 h-5 text-indigo-400" />
+        <h2 className="text-xl font-semibold text-white">Add New Book</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -102,7 +102,7 @@ function BookForm({ onAddBook, loading }) {
           placeholder="Book Title"
           value={formData.title}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 bg-black border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           disabled={isSubmitting || loading}
         />
         <input
@@ -111,7 +111,7 @@ function BookForm({ onAddBook, loading }) {
           placeholder="Author"
           value={formData.author}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 bg-black border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           disabled={isSubmitting || loading}
         />
         <input
@@ -120,7 +120,7 @@ function BookForm({ onAddBook, loading }) {
           placeholder="Published Year"
           value={formData.published_year}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 bg-black border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           disabled={isSubmitting || loading}
           min="1000"
           max={new Date().getFullYear()}
@@ -131,14 +131,14 @@ function BookForm({ onAddBook, loading }) {
           placeholder="Book Link (https://...)"
           value={formData.link}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 bg-black border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           disabled={isSubmitting || loading}
         />
       </div>
 
       <button
         onClick={handleSubmit}
-        className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-md transition-colors duration-200 disabled:bg-blue-400"
+        className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-3 rounded-md transition-colors duration-200 disabled:bg-indigo-400"
         disabled={isSubmitting || loading}
       >
         {isSubmitting ? 'Adding...' : 'Add Book'}
@@ -166,12 +166,16 @@ export default function Home() {
       <header className="bg-gray-900 shadow-sm border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logo-transparent-svg.svg" alt="ReadPalm logo" className="w-8 h-8" />
-              <h1 className="text-2xl font-bold">readpalm</h1>
+            <div className="flex items-center gap-4">
+              <img
+                  src="/logo-transparent1-png.png"
+                  alt="readpalm logo"
+                  className="w-16 sm:w-20 md:w-24 lg:w-32 object-contain"
+                />
+              {/* <h1 className="text-3xl font-bold">READPALM</h1> */}
             </div>
-            <div className="flex items-center gap-2 bg-blue-900 px-3 py-1 rounded-full">
-              <BookOpen className="w-4 h-4 text-blue-300" />
+            <div className="flex items-center gap-2 bg-indigo-900 px-3 py-1 rounded-full">
+              <BookOpen className="w-4 h-4 text-indigo-300" />
               <span className="text-sm font-medium">{books.length} Books</span>
             </div>
           </div>
@@ -201,16 +205,16 @@ export default function Home() {
               placeholder="Search books by title or author..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-3 border border-gray-600 bg-gray-800 text-white rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-10 pr-4 py-3 border border-gray-700 bg-gray-900 text-white rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
 
-        <div className="bg-white text-gray-900 border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white text-gray-900 border border-gray-200 rounded-lg shadow-md overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center gap-2 text-gray-700">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent"></div>
                 <span>Loading books...</span>
               </div>
             </div>
@@ -242,7 +246,7 @@ export default function Home() {
                       <td className="px-6 py-4 whitespace-nowrap text-gray-900">{book.author}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-900">{book.published_year}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <a href={book.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium">
+                        <a href={book.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium">
                           View <ExternalLink className="w-3 h-3" />
                         </a>
                       </td>
